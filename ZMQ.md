@@ -221,7 +221,7 @@ when ZMQ detects external fault, it returns error code. in some cases it drops t
 error handling should be done whenever zmq functions are called.
 
 2 main exception condition that should be handled as non-fatal:
-1. when receiving a message with ZMQ_DONTWAIT option and there is no waiting data, ZMQ will return -1 with errno EAGAIN.
+1. when receiving a message with `ZMQ_DONTWAIT` option and there is no waiting data, ZMQ will return -1 with errno EAGAIN.
 2. when one thread calls `zmq_ctx_destroy` and other threads are doing blocking work. the `zmq_ctx_destroy` destroys the blocking call and return -1 with errno set to ETERM.
 
 ### Multithreading
@@ -293,4 +293,195 @@ ROUTER      | 1. check reply sockets are valid, ZMQ drop message if it can't rou
 
 make sure a socket is used only by one thread. 
 
+#### Mechanism for REQ-REP
+REQ-REP uses envelopes containing the return address of the sender in order to communicate between end-points. the socket automatically handles the envelope. It is how ZMQ creates roundtrip without having any state.
 
+Envelopes allow a safe way to package up data with an address, without touching data itself. This allows for intermediaries to function without modifying or reading the original data.
+
+#### Simple Reply Envelope
+ZMQ reply envelope consist of 0 or more reply addresses, followed by an empty frame as delimiter, followed by data. The envelope is created by multiple sockets working together in a chain.
+
+example: simple REQ-REP. the REQ contains simple envelope, with no return address, but just an empty delimiter frame and the message frame. The REP socket does the matching work. It strips off the envelope, up to and including delimiter frame, saves the envelope, pass the data to the application. Thus application never sees the envelope. This doesn't make much sense until we add intermediaries such as ROUTER and DEALER.
+
+example: we have REQ-REP with ROUTER-DEALER intermediaries (any number of intermediaries). the proxy does the following:
+
+```
+prepare socket frontend and backend sockets
+while true:
+  poll on both sockets
+  if frontend has input:
+    read all frames from frontend
+    send to backend
+  if backend has input:
+    read all frames from backend
+    send to frontend
+```
+
+the ROUTER socket tracks every connection it has, and tell caller about these by sticking connection identity in front of each message received. when sending as ROUTER, first send the address frame.
+
+the ROUTER socket invents a random identity for each connection with which it works.
+
+note this means ROUTER unlike REP socket does not strip off the address, and REQ socket sends its address when sending to ROUTER instead of sending empty address when connecting to REP.
+
+ROUTER then sends the address with the data to DEALER socket internally in the proxy.
+
+when REP socket return data to DEALER, the address it obtained from REQ is appended to the data. DEALER reads both address and data, and send them all to ROUTER. ROUTER **now picks up the address and push only the remaining frames to REP**, it uses the address to find the right REP socket to use. REP picks up the remaining 2 frames, check the first frame is empty, and pass the data frame to application.
+
+the take points are:
+* ROUTER keeps track of all REQ addresses using its own hashing scheme, and sends data back to the right REP according to the address
+* possible to keep track of peers using the ROUTER assigned identity for them
+* ROUTER will route message to any peer asynchronously if you prefix the identify as the first frame of the message 
+* ROUTER doesn't care about the content of the message or the delimiter frame, it only cares about the address frame which let them figure out where to send the data
+* DEALER socket are oblivious to reply envelopes like PUSH and PULL sockets
+* ROUTER is oblivious to reply envelope when receiving the data. it creates identity to the sender. It strips the reply envelope and uses to send the reply message to the right origin. ROUTER is asynchronous.
+
+Legal REQ-REP combinations:
+* REQ to REP
+* DEALER to REP
+* REQ to ROUTER
+* DEALER to ROUTER
+* DEALER to DEALER
+* ROUTER to ROUTER
+
+Invalid REQ-REP combinations:
+* REQ to REQ: must somehow send and receive at the same time, just not possible
+* REP to REP: each side is waiting for the other to talk, nobody talks
+* REQ to DEALER: would only work if there is one REQ, adding one more will make DEALER not possible to distinquish between senders
+* REP to ROUTER: could work but messy, better to use DEALER-ROUTER setup
+
+DEALER is like asynchronous REQ socket, ROUTER is like asynchronous REP socket, where we use a REQ we can switch to use DEALER, we just have to read and write the envelope ourselves. where we use a REP socket we can use ROUTER, we just need to manage identities ourselves.
+
+REQ and DEALER are like clients, while REP and ROUTER are like servers.
+
+#### REQ - REP Combination
+NOTE **REQ socket will have to initiate conversation**, otherwise it will be an error, REP could never initiate conversation.
+
+#### DEALER - REP Combination
+when using DEALER to talk to REP directly, we have to accurate emulate the envelope that REQ socket expect, otherwise the message would be discarded as invalid.
+
+Using DEALER to emulate REP requires when sending from DEALER:
+1. send a empty message frame with more flag set
+2. send data of the message
+
+when receiving from DEALER:
+1. reject if first frame is nonempty
+2. receive the next frame and pass to application
+
+#### REQ - ROUTER Combination
+we can replace REP socket with ROUTER, which also change from synchrnous to asynchronous and can handle multiple send/reply. we can route in 2 distinct ways:
+1. as a proxy that switch messages between front end and back end
+2. as an application that read messages and act on it
+
+in the first scenario ROUTER must forward the identity frame, on the second scenario router must know the format of the reply envelope
+
+#### DEALER - DEALER Combination
+this replaces both REQ and REP with DEALER socket. you can go fully synchronous with this setup. problem is all reply messages has to be manually managed.
+
+#### ROUTER - ROUTER Combination
+although possible, this is the most dangerous and should be avoided.
+
+#### ROUTER Socket Identity
+ROUTER uses a unique id to represent the originator. the unique ID (logical address) can also be set by the connected peer using `zmq_setsockopt` option `ZMQ_IDENTITY` before binding to the connection. The ROUTER will then use the logical address provided by the peer to identify the peer and require anyone talking to the peer to use the specific logical address.
+
+#### ROUTER Error Handling
+if ROUTER could not route a message to any peer, it drops the message by default. in V3.2 if this behavior is not expected, `zmq_setsockopt` with option `ZMQ_ROUTER_MANDATORY` will generate a signal `EHOSTUNREACH` error.
+
+### Load Balancing Pattern
+solves problem in round robin routing if tasks do not complete in roughly the same time. a PUSH-DEALER socket creates a simple round-robin load balancing pattern, it's inneficient if some job takes much longer to complete than others, causing some of the worker to wait on other workers who haven't completed the job yet.
+
+the solution is to use DEALER-ROUTER or REQ-ROUTER, where broker knows when the worker is ready so that it can take the **least recently used** worker each time. each worker will send the broker a ready message when they start and finish each task. using the ROUTER socket, we will be able to keep track of the worker identity and send task to the specific worker. it's a twist on REQ-REP where task is sent with the reply and any response for the task is sent as a new request.
+
+#### ROUTER broker and REQ worker
+one of the pattern for weighted task load balancing pattern. worker initiate by sending work request to broker through REQ socket, then ROUTER reply with work. Broker on the ROUTER side must interpret the structure of the ROUTER message frame, reading the address, record it, then read the empty frame, followed by the message, then send a reply to REQ socket with a message manually constructed to have a address frame, an empty frame and data frame.
+
+#### ROUTER broker and DEALER worker
+second pattern for weighted task load balancing pattern. we can always replace a REQ socket with a DEALER socket. in this case the differences are:
+* DEALER socket does not necessarily need to initiate the message
+* DEALER is asynchronous while REQ is synchronous and can only do single request reply cycle 
+
+those differences don't matter until we need to address failure handling.
+
+if we never pass a message along a REP socket, we can also drop the empty frame delimiter between address and message, which is often the pure DEALER-ROUTER pattern. 
+
+#### Load Balancing Message Broker
+the previous 2 patterns are complete. we are not sending the result back to client.
+
+design of load balancing message broker:
+
+client (REQ) <-> frontend (ROUTER) | PROXY load balancer | backend (ROUTER) <-> worker (REQ)
+
+in order to be able to send the result back to the client, the message will contain 5 parts when reaching the worker: worker id + "" + client id + "" + data
+
+### Asynchronous Client Server Pattern
+client (DEALER) <-> frontend (ROUTER) | proxy | backend (DEALER) <-> worker (DEALER)
+
+* client connect to server and send requests
+* for each request server can send 0 or more replies
+* client can send multiple requests without waiting for a reply
+* server can send multiple replies without waiting for a request
+
+when server maintain stateful information regarding client, it runs into problem where client can come and go to consume resources on the server, eventually running out of resources. a cheap way to fix it is to keep the state information for a short time, but to properly handle state it needs:
+* do heartbeat from client to server
+* store state based on client identity as key
+* detect a stopped heartbeat to initiate resource cleanup
+
+### Client side reliability (Lazy Pirate Pattern)
+for client-server architecture. handles server crashes, restarts, network disconnect
+
+instead of doing a blocking receive, we poll REQ socket only when it's sure a reply has arrived; resend a request if no reply obtained before timeout; abandon the transaction if there is still no reply after several requests.
+
+doing normal REQ-REP would consider a resend error in communication. brute force approach is just close and reopen the REQ socket after the timeout.
+
+this pattern cannot handle server side failures, only client side failure. it is easy to implement, works with existing REQ-REP pattern.
+
+### Basic Reliable Queueing (Simple Pirate Pattern)
+for multi-client talking to broker proxy that distributes work to multiple workers. handles worker crash and restarts, worker busy looping, worker overload, queue crash and restart, and network disconnect
+
+assuming workers are stateless. pattern could not recover if central queue in the proxy side fails.
+
+the pattern builds on top of load-balancing pattern, where the client side becomes the lazy pirate. the worker in the load-balancing pattern can come and go as they please because no state is kept in the worker.
+
+### Robust Reliable Queueing (Paranoid Pirate Pattern)
+simple pirate pattern has two problems:
+* not robust when proxy crash and restart. worker will reconnect to proxy, but no ready message, making them not usable. need heartbeat from queue to worker to fix this.
+* queue does not detect worker failure, proxy can't remove dead worker from queue until proxy sends it a request, which client will not receive answer for. need heartbeat from worker to queue.
+
+instead of using REQ socket on worker, we'll use DEALER socket. this allows send/receive at any time instead of lock-step. client side is still the lazy pirate pattern.
+
+### Heartbeating
+hard to get right. 3 main reasons to use heartbeat:
+1. most common approach is to do no heartbeating. ZMQ encourages this by hiding peers. but this could cause problems:
+  * when use a ROUTER socket to track peers, as peers disconnect and reconnect, the application leaks memory (resource application hold for each peer) and get slower and slower
+  * when use SUB or DEALER based data receipient, we can't tell the difference between good silence or bad silence. when receipient  knows the other side died, it can try switch to a different route
+  * if we use TCP connection that stays silent, it dies on some networks. sending something will keep the network alive
+2. one way heartbeat; send heartbeat to all peers every second. when one node hear nothing from another with timeout, it treats the peer as dead. this works on some cases and **have nasty edge case in others**. it works for PUB-SUB, as PUB can send heartbeats to SUBs. can optimize and send heartbeat only when there is no data to be send, can also send heartbeat progressively slwoer and slower. problems:
+  * it can be inaccurate when we send large amount of data. need to treat any packets also as heartbeat
+  * PUSH and DEALER sockets queue heartbeats, so when a dead peer comes back, it gets all the heartbeat it was sent.
+  * design assumes heartbeat timeout the same amount of time across the entire network, which may not be true, some peers may want aggressive heartbeat for detecting fault rapidly and some want relaxed heartbeat to save power.
+3. ping-pong heartbeat; does not necessarily mean client server heart beat. it works for all ROUTER based patterns.
+
+how to handle heartbeat from the queue:
+* calculate liveness, how many beats to miss before considering peer dead.
+* wait on `zmq_poll` loop, which has timeout that's the heartbeat interval
+* if there is any message, reset liveness
+* if no message, do liveness countdown
+* when liveness reaches 0, consider it dead
+* if queue is dead, destroy socket, create new one and reconnect
+* avoid keep opening and closing sockets, wait for an interval before reconnect, doubling the interval each time
+
+how to handle heartbeat to the queue:
+* calculate when to send the next heartbeat
+* in `zmq_poll` loop whenever we pass the time we send heartbeat to the queue
+
+tips to build heartbeat:
+* use `zmq_poll` as the main loop
+* start by building heartbeat between peers, test and simulate for failures, then build the rest of the message flow.
+* use simple tracing to get it working
+* heartbeat interval should be configurable according to different peers
+* poll timeout should be the lowest of the configurable intervals
+* do heartbeat on the same socket for messages, so heartbeat acts as keep-alive to prevent network going stale
+
+
+
+# REFERENCE
+[zguide](http://zguide.zeromq.org)
