@@ -175,8 +175,8 @@ flow analysis definitions:
 **liveness**: a variable is live on an edge if there is a directed path from that edge to a use of the variable that does not go through any def. a variable is live at a node if it is live on any of the in-edges of that node, it is live-out at the node if it is live on any of the out-edge of the node
 
 liveness information (live-in live-out) can be calculated from use and def as follows:
-in[n] = use[n] U (out[n] - def[n]) where U is union
-out[n] = U[s in succ[n]] (in[s]) where U is union
+**in[n]** = use[n] U (out[n] - def[n]) where U is union
+**out[n]** = U[s in succ[n]] (in[s]) where U is union
 
 note out[n] should be computed before in[n]
 

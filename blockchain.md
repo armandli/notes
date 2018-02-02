@@ -1,4 +1,4 @@
-### Hasing
+### Hashing
 hash function translates variable length string into fixed length string. act as unique identifier, address, transaction signature, checksum and other validations.
 
 2 compound hash functions used for blockchain:
