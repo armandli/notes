@@ -11,7 +11,7 @@ sys.getsizeof(obj)
 
 ### General Memory Usage:
 |Type                          | 32-bit              | 64-bit              |
-|==========================================================================|
+|------------------------------|---------------------|---------------------|
 |int python2                   | 12                  | 24                  |
 |long python2 or int python3   | 14 + (2 * digits)   | 30 + (2 * digits)   |
 |str python2 or bytes python3  | 24 + len            | 40 + len            |
@@ -25,7 +25,7 @@ general trend is 64-bit consumes twice as much memory compared to 32-bit. Python
 dictionary consume more memory:
 
 |size of dictionary | 32-bit                                | 64-bit                                |
-|===================================================================================================|
+|-------------------|---------------------------------------|---------------------------------------|
 |base               | 136 + 12 * external PyDictEntry Table | 280 + 24 * external PyDictEntry Table |
 |0-5 entries        | 136                                   | 280                                   |
 |6-21               | 520                                   | 1048                                  |
