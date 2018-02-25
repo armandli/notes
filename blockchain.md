@@ -196,10 +196,10 @@ algorithm:
 ### Wallet Import Format (WIF)
 A WIF is made of a key (private key) and a address (public key) encoded using base58. given
 
-network  | hex version for private key
-======================
-mainnet  | 80
-testnet3 | ef
+| network  | hex version for private key |
+|==========|=============================|
+|mainnet   | 80                          |
+|testnet3  | ef                          |
 
 WIF key representation:
 1. repent 80 for mainnet or ef for testnet3
@@ -269,10 +269,10 @@ Other types of addresses are P2SH or multisignature.
 
 given version table
 
-network   | hex version for public key
-======================================
-mainnet   | 00
-testnet3  | 6f
+|network   | hex version for public key |
+|==========|============================|
+|mainnet   | 00                         |
+|testnet3  | 6f                         |
 
 we generate P2PKH address this way
 1. perform hash160 on public key
@@ -329,12 +329,12 @@ NOTE compressed and uncompressed public keys yield different hash values, or dif
 #### Magic Version Prefix
 the side effect of version byte is that bitcoin encoded strings always begin with special letters:
 
-Key and Address  | hex version | prefix
-=======================================
-mainnet key      | 80          | 5,K,L
-testnet3 key     | ef          | 9,c
-mainet address   | 00          | 1
-testnet3 address | 6f          | m,n
+| Key and Address  | hex version | prefix |
+|==================|=============|========|
+|mainnet key       | 80          | 5,K,L  |
+|testnet3 key      | ef          | 9,c    |
+|mainet address    | 00          | 1      |
+|testnet3 address  | 6f          | m,n    |
 
 the prefix helps us identify the meaning of the key and address in base58 string. this is intentional
 

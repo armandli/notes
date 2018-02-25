@@ -22,9 +22,9 @@ Memory Model
 - list of supported operations on the platform
 - devices from each platform
 
-to find out maximum number of threads per workgroup, use clGetDeviceInfo with param_name set to CL_DEVICE_MAX_WORK_GROUP_SIZE. Most compatible work group size is 16.
+to find out maximum number of threads per workgroup, use clGetDeviceInfo with `param_name` set to `CL_DEVICE_MAX_WORK_GROUP_SIZE`. Most compatible work group size is 16.
 
-device memory is also limited. to query for device memory limit. use clGetDeviceInfo with CL_DEVICE_LOCAL_MEM_SIZE.
+device memory is also limited. to query for device memory limit. use clGetDeviceInfo with `CL_DEVICE_LOCAL_MEM_SIZE`
 
 functions:
 
@@ -33,7 +33,7 @@ clGetPlatformInfo
 clGetDeviceIDs
 clGetDeviceInfo
 
-barrier(CLK_LOCAL_MEM_FENCE)
+`barrier(CLK_LOCAL_MEM_FENCE)`
 
 ### Execution Model
 
@@ -58,7 +58,7 @@ clEnqueueWriteBuffer
 clEnqueueNDRangeKernel
 
 kernel builtin functions:
-
+```
 get_work_dim()         # total number of dimensions of the kernel being launched
 get_global_size(dim)   # global number of work item in dimension specified in dim
 get_global_id(dim)     # global id in dimension dim
@@ -68,6 +68,7 @@ get_num_groups(dim)    # number of work groups in dimension dim
 get_group_id(dim)      # return group id of work group in dimension dim
 get_global_offset(dim) # return the offset value specified in global work offset for dimension dim.
 barrier()              # global or local memory fence
+```
 
 ### Memory Model
 
@@ -120,7 +121,7 @@ Undefined behaviors in cl_mem:
 7. Releasing a buffer before task is queued to use it (write or read).
 
 functions:
-
+```
 clCreateBuffer
 clCreateSubBuffer
 clEnqueueWriteBuffer #write to device
@@ -138,6 +139,7 @@ clEnqueueMapBuffer
 clEnqueueUnmapMemObject
 
 clSetKernelArgs  # kernel arguments are set using functions
+```
 
 ### Program Objects
 
@@ -149,11 +151,11 @@ Binary or not, the program must call clBuildProgram. This is because clBuildProg
 
 Program info can be retrieved using clGetProgramInfo function. Once program is built, we can get the binary file using clGetProgramInfo function with param CL_PROGRAM_BINARIES.
 
-CL_BUILD_PROGRAM_FAILURES is returned when compiler failed to build the kernel during clBuildProgram. clGetProgramBuildInfo can be used to retrieve the build failure message.
+`CL_BUILD_PROGRAM_FAILURES` is returned when compiler failed to build the kernel during clBuildProgram. clGetProgramBuildInfo can be used to retrieve the build failure message.
 
 example logging of compiler error macro:
 
-'''
+```
 #define LOG_OCL_COMPILER_ERROR(prog, dev) \
 {\
   cl_int logstat; \
@@ -181,16 +183,17 @@ example logging of compiler error macro:
   std::cout << " buildLog << std::endl;\
   free(buildlog);\
 }
-'''
+```
 
 OpenCL program build options:
-ENABLE_ATOMICS enables atomic support
+`ENABLE_ATOMICS` enables atomic support
 cl-single-precision-constant treats all constants as single precision
 -denorms-are-zero denormal values are truncated to 0
 cl-opt-disable disables all optimizations
 cl-mad-enable allows for a * b + c to be replaced by a mad operation, mad are different from fma (fused multiply add) operation, later being more precise
 
 Information retrievable from OpenCL program:
+```
 CL_PROGRAM_BINARIES
 CL_PROGRAM_REFERENCE_COUNT
 CL_PROGRAM_CONTEXT
@@ -200,9 +203,10 @@ CL_PROGRAM_SOURCE
 CL_PROGRAM_BINARY_SIZE
 CL_PROGRAM_NUM_KERNELS #a program may be associated with many kernels
 CL_PROGRAM_KERNEL_NAMES
+```
 
 creating binary from source:
-'''
+```
 cl_program prog;
 cl_int clstat = CL_SUCCESS;
 cl_device_id* devlist = NULL;
@@ -224,7 +228,7 @@ for (cl_uint i = 0; i < num_devices; ++i)
   progbin[i] = new char[binarySize[i]];
 
 clstat = clGetProgramInfo(prog, CL_PROGRAM_BINARIES, sizeof(unsigned char *) * num_devices, progbin, &bytes_read);
-'''
+```
 
 SPIR = standard compliant binary as part of OpenCL extension
 
@@ -232,24 +236,24 @@ SPIR is a mapping of OpenCL C program to LLVM IR. It adopts two notions: binary 
 
 clCreateKernelsInProgram creates all kernel objects associated with the program
 
-clEnqueueNDRangeKernel launches the kernel. It takes work_dim that represents global work offset, global work size, and local_work_size. event wait list is a list of operations that needs to be done before the execution of the kernel.
+clEnqueueNDRangeKernel launches the kernel. It takes `work_dim` that represents global work offset, global work size, and `local_work_size`. event wait list is a list of operations that needs to be done before the execution of the kernel.
 
 clEnqueueTask for task parallel workloads if clEnqueueNDRange has parallel workload available.
 
-clGetKernelInfo gets information about a cl_kernel object. Information contains kernel function name, number of arguments, associated program, context etc.
+clGetKernelInfo gets information about a `cl_kernel` object. Information contains kernel function name, number of arguments, associated program, context etc.
 
 clGetKernelArgInfo gets information about a kernel's argument. The argument information is only available for the program if it's created with source, not binary.
 
-clGetKernelWorkGroupInfo gets the kernel's work group size. optimal performance can be achieved if a multiple of CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE is used. CL_KERNEL_PREFFERRED_WORK_GROUP_SIZE_MULTIPLE can be retrieved using clGetKernelWorkGroupInfo. Along with other information such as local memory size, private mem size, global work size, work group size.
+clGetKernelWorkGroupInfo gets the kernel's work group size. optimal performance can be achieved if a multiple of `CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE` is used. `CL_KERNEL_PREFFERRED_WORK_GROUP_SIZE_MULTIPLE` can be retrieved using clGetKernelWorkGroupInfo. Along with other information such as local memory size, private mem size, global work size, work group size.
 
 clReleaseProgram releases the program object. clReleaseProgram will decrease a reference count, object is deleted if count reaches 0.
 
-clRetainProgram increases the reference count on a program object. the reference count can be obtained by calling clGetKernelInfo with param CL_PROGRAM_REFERENCE_COUNT.
+clRetainProgram increases the reference count on a program object. the reference count can be obtained by calling clGetKernelInfo with param `CL_PROGRAM_REFERENCE_COUNT`.
 
 some kernel come with opencl library, and are considered builtin. use clCreateProgramWithBuiltInKernel to create them.
 
 functions:
-
+```
 clCreateProgramWithSource
 clCreateProgramWithBinary
 clBuildProgram
@@ -264,16 +268,17 @@ clGetKernelWorkGroupInfo
 clReleaseProgram
 clRetainProgram
 clCreateProgramWithBuiltInKernel
+```
 
 ### Events and Synchronization
 
 openCL provides both coarse-grained event and fine-grained events. 
 
-Coarsed grained events is achieved using clFlush and clFinish. Fine-grained events is achieved using cl_event objects, which determine the status of a task enqueued on a CommandQueue. 
+Coarsed grained events is achieved using clFlush and clFinish. Fine-grained events is achieved using `cl_event` objects, which determine the status of a task enqueued on a CommandQueue. 
 
 clFinish function returns if all commands on a queue is completed. clFinish will block the host program.
 
-clEventInfo can get the info on a cl_event object.
+clEventInfo can get the info on a `cl_event` object.
 
 clWaitForEvents can be used to block host program until list of events is finished in queue.
 
@@ -301,10 +306,12 @@ clEnqueueBarrierWithWaitList queues a synchronization point. It is a non-blockin
 #### Event based fine-grained Synchronization
 
 event states:
+```
 CL_QUEUED
 CL_SUBMITTED
 CL_RUNNING
 CL_COMPLETE
+```
 
 clEnqueueMarkerWithWaitList does not stop execution of subsequet tasks enqueued. It is used to catch the status of execution of all commands enqueued before it. Marker creates a event that subsequent operation can easily wait on instead of all the events the marker is waiting on.
 
@@ -324,14 +331,14 @@ CommandQueue should be created with CL_QUEUE_PROFILING_ENABLE flag in order to b
 
 the following code calculates the time of a event:
 
-'''
+```
 double get_event_exec_time(cl_event ev){
   cl_ulong start, end;
   clGetEventProfilingInfo(ev, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
   clGetEventProfilingInfo(ev, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
   return (end - start) * 1e-6;
 } 
-'''
+```
 
 #### Memory Fences
 
@@ -342,7 +349,7 @@ synchronize between workgroup. No way to synchronize between different work grou
 both can be used together too.
 
 functions:
-
+```
 clFinish
 clFlush
 clGetEventInfo
@@ -353,6 +360,7 @@ clRetainEevent
 clReleaseEvent
 clCreateUserEvent
 clGetEventProfilingInfo
+```
 
 ### OpenCL Programming
 
@@ -398,7 +406,7 @@ pointer aliasing is not allowed in openCL, and memcpy is not defined in openCL t
 openCL also provides as_type(srcType) as way to reinterpret cast a value from one to another without changing the bit pattern.
 
 functions:
-
+```
 convert_dsttype(srctype)
 convert_dsttype_sat(srctype)
 convert_disttype_rmode(srctype)
@@ -409,6 +417,7 @@ global or __global
 local or __local
 constant or __constant
 private or __private
+```
 
 if address space qualifier is not specified, default assumptions are made based on type. by default it is private, this include kernel arguments. pointer arguments must declare if it is global, constant or local. function pointer as argument is not allowed. outer kernel function interface cannot take argument type pointer to pointer.
 
