@@ -10,26 +10,26 @@ sys.getsizeof(obj)
 ```
 
 ### General Memory Usage:
-Type                          | 32-bit              | 64-bit
-=======================================================================
-int python2                   | 12                  | 24
-long python2 or int python3   | 14 + (2 * digits)   | 30 + (2 * digits)
-str python2 or bytes python3  | 24 + len            | 40 + len
-unicoe python2 or str python3 | 28 + (2 or 4 * len) | 52 + (2 or 4 * len)
-list                          | 32 + (4 * len)      | 72 + (8 * len)
-tuple                         | 24 + 4 * len        | 64 + 8 * len
-float                         | 16                  | 24
+|Type                          | 32-bit              | 64-bit              |
+|==========================================================================|
+|int python2                   | 12                  | 24                  |
+|long python2 or int python3   | 14 + (2 * digits)   | 30 + (2 * digits)   |
+|str python2 or bytes python3  | 24 + len            | 40 + len            |
+|unicoe python2 or str python3 | 28 + (2 or 4 * len) | 52 + (2 or 4 * len) |
+|list                          | 32 + (4 * len)      | 72 + (8 * len)      |
+|tuple                         | 24 + 4 * len        | 64 + 8 * len        |
+|float                         | 16                  | 24                  |
 
 general trend is 64-bit consumes twice as much memory compared to 32-bit. Python could use a lot of memory at different levels: Python Level, Library/Extension Level
 
 dictionary consume more memory:
 
-size of dictionary | 32-bit                                | 64-bit
-====================================================================
-base               | 136 + 12 * external PyDictEntry Table | 280 + 24 * external PyDictEntry Table
-0-5 entries        | 136                                   | 280
-6-21               | 520                                   | 1048
-22-85              | 1672                                  | 3352
+|size of dictionary | 32-bit                                | 64-bit                                |
+|===================================================================================================|
+|base               | 136 + 12 * external PyDictEntry Table | 280 + 24 * external PyDictEntry Table |
+|0-5 entries        | 136                                   | 280                                   |
+|6-21               | 520                                   | 1048                                  |
+|22-85              | 1672                                  | 3352                                  |
 
 dictionary size quadruples in size because it needs to make sure portion of its map is free
 
