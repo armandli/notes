@@ -166,10 +166,10 @@ bitcoin is on peer-to-peer network. There are 2 subnets: mainnet, and testnet3. 
 
 Mainnet and testnet3 differ in the TCP port being used for p2p access and the prefix of the transmitted packets.
 
-          | port  | packet prefix
-----------------------------------
-mainnet   | 8333  | f9 be b4 d9
-testnet3  | 18333 | 0b 11 09 07
+|          | port  | packet prefix |
+|----------|-------|---------------|
+|mainnet   | 8333  | f9 be b4 d9   |
+|testnet3  | 18333 | 0b 11 09 07   |
 
 testnet3 validation rules are much more relaxed.
 
@@ -197,7 +197,7 @@ algorithm:
 A WIF is made of a key (private key) and a address (public key) encoded using base58. given
 
 | network  | hex version for private key |
-|==========|=============================|
+|----------|-----------------------------|
 |mainnet   | 80                          |
 |testnet3  | ef                          |
 
@@ -270,7 +270,7 @@ Other types of addresses are P2SH or multisignature.
 given version table
 
 |network   | hex version for public key |
-|==========|============================|
+|----------|----------------------------|
 |mainnet   | 00                         |
 |testnet3  | 6f                         |
 
@@ -330,7 +330,7 @@ NOTE compressed and uncompressed public keys yield different hash values, or dif
 the side effect of version byte is that bitcoin encoded strings always begin with special letters:
 
 | Key and Address  | hex version | prefix |
-|==================|=============|========|
+|------------------|-------------|--------|
 |mainnet key       | 80          | 5,K,L  |
 |testnet3 key      | ef          | 9,c    |
 |mainet address    | 00          | 1      |
@@ -530,11 +530,13 @@ when serialized, the input and output length are prefixed. finally during serial
 coinbase transactions are the only transactions without real inputs. each block in blockchain has one and only coinbase transaction that rewards the block miner with the famous ever-halving amount of bitcoin (currently 25BTC)
 
 it has a single output that sends a 25BTC plus fee to an address using an standard P2PKH output script:
+```
 OP_DUP
 OP_HASH160
 push HASH160
 OP_EUQALVERIFY
 OP_CHECKSIG
+```
 
 the transaction has only 1 input. since coinbase transaction creates bitcoins, it doesn't point to an UTXO. Coinbase scripts are placeholders for block metadata, like block height and block chain, name of mining software, generic binary data etc.
 
