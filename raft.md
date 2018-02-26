@@ -90,3 +90,6 @@ guarantee ***log matching property***, such that if 2 entries are at the same in
 *AppendEntries* RPC include log repair. when the RPC is sent out, it includes the previous log segment's term and data. If the previous entry does not match on the follower, the follower send reject message signalling log difference. the leader then backs up one and try again, as in sending just 2 entries including the current entry, it sends 3 entries, and 4, and 5 and so on
 
 once a log segment is committed, all future leaders must store that entry, machines with incomplete logs must not get elected. candidates include index and term of last log entry in *RequestVote* RPC, and voting machines denies vote if its log is more up to date. logs are ranked by `last term, last index`
+
+#### Adding and Removing Machines
+TODO
