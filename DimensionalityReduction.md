@@ -9,7 +9,9 @@ we want to map **N** *data points* in R^D into *map point* in R^2, expecting tha
 
 let |xi - xj| be the Euclidean distance between two data points, and |yi - yj| be the distance between two map points. we define a conditional similarity between the two data points as:
 
+```
 p_{j|i} = \frac{\exp(-||x_i - x_j||^2 / 2\sigma_i^2)}{\sum_{k!=i}\exp(-||x_i - x_k||^2 / 2\sigma_i^2)}
+```
 
 which measures how close is xj from xi, considering a *Gaussian Distribution* around xi with variance `sigma_i^2`; the variance is different for every point, it is chosen such that points in dense areas are given a smaller variance than sparse areas.
 
