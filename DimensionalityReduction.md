@@ -9,23 +9,23 @@ we want to map **N** *data points* in R^D into *map point* in R^2, expecting tha
 
 let |xi - xj| be the Euclidean distance between two data points, and |yi - yj| be the distance between two map points. we define a conditional similarity between the two data points as:
 
-\begin{equation}
+$$$
 p_{j|i} = \frac{\exp(-||x_i - x_j||^2 / 2\sigma_i^2)}{\sum_{k!=i}\exp(-||x_i - x_k||^2 / 2\sigma_i^2)}
-\end{equation}
+$$$
 
 which measures how close is xj from xi, considering a *Gaussian Distribution* around xi with variance `sigma_i^2`; the variance is different for every point, it is chosen such that points in dense areas are given a smaller variance than sparse areas.
 
 we then define similarity as a symmetrized version of the conditional similarity:
 
-```
+$$$
 pij = (p_j|i + p_i|j) / (2 * N)
-```
+$$$
 
 which creates a *similarity matrix* of the original dataset. then we define similarity matrix for map points.
 
-```
+$$$
 qij = f(|xi - xj|) / sum_k!=i(f(|xi - xk|)) with f(z) = 1 / (1 + z^2)
-```
+$$$
 
 which has the same idea but a different distribution, a *t-student with one degree distribution*, or a *cauchy distribution*
 
@@ -34,15 +34,15 @@ imagine map points are all connected with springs, the stiffness of the spring c
 
 the physical analogy corresponds to minimizing **Kullback-Leiber divergence** between two distributions, pij and qij.
 
-```
+$$$
 KL(P || Q) = sum_ij(pij * log(pij / qij))
-```
+$$$
 
 to minimize the score, we performm gradient descent, which can be computed analytically:
 
-```
+$$$
 dKL(P || Q) / dyi = 4 * sum_j(pij - qij) * g(|xi - xj|) * uij where g(z) = z / 1 + z^2
-```
+$$$
 
 where uij is a unit vector going from yj to yi. this gradient expresses the sum of all spring forces applied to map point i.
 
