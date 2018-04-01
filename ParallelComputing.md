@@ -43,10 +43,17 @@ node level in skip list is chosen randomly, with level 0 with probability 2^-1, 
 
 a decentralized count algorithm requires each thread to have a private counter, incremented after each insert. counters are periodically aggregated to produce a total node count. period of aggregation is based on estimation of when total node count will cross next 2^N mark.
 
-### Multi-list
-
 ##### memory allocation
 memory allocation must proceed in parallel. memory consumption must consume memory optimally. use per thread **slab allocator**.
+
+### Radix Sort
+two radix sort: LSD (least significant digit) radix sort and MSD (most significant digit) radix sort. MSD radix sort can be parallelized. each subdivisions can be sorted independently of the rest.
+
+2 parallelizations: intra-radix paralleization where input data is split into several parts and each processor picks up a part and makes radix split (parallel processing). when all parts have split partial radix arrays are aggregated (join) and directed to the next level of recursion. this help with sorting of not-so-randomly distributed data. inter-radix parallelization sort whole array on lower levels of recursion. this parallelization help mitigate overhead of thread synchronization. 
+
+parallelization is guided at runtime. threads prefer to do inter-radix parallelization, howver if some threads are out of work they help other threads on intra-radix level.
+
+when size of input array reaches some threshold, thread switches to single-threaded mode and no futher sub-task are split.
 
 ### Reference
 (1024core)[http://www.1024cores.net/home/parallel-computing/cache-oblivious-algorithms]
