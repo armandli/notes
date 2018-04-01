@@ -122,3 +122,74 @@ spec:
     app: webapp1
 ```
 
+#### controller.yaml
+configuration for controlling the replication of a server. e.g.
+
+```
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: redis-master
+  labels:
+    name: redis-master
+spec:
+  replicas: 1
+  selector:
+    name: redis-master
+  template:
+    metadata:
+      labels:
+        name: redis-master
+    spec:
+      containers:
+      - name: master
+        image: redis:3.0.7-alpine
+        ports:
+        - containerPort: 6379
+```
+
+#### Networking
+Cluster IP is the default approach when creating Kubernetes Service. The service allocate an internal IP that other components can use to access the pods. Having a single IP address allows the service to be load balanced across multiple Pods. e.g.
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp1-clusterip-svc
+  labels:
+    app: webapp1-clusterip
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: webapp1-clusterip
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: webapp1-clusterip-deployment
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: webapp1-clusterip
+    spec:
+      containers:
+      - name: webapp1-clusterip-pod
+        image: katacoda/docker-http-server:latest
+        ports:
+        - containerPort: 80
+---
+```
+
+the cluster IP can be found using `kubectl get services/<ClusterIPService> -o go-template='{{(index .spec.clusterIP)}}'`
+
+Target ports allow the separation between the port the service is available on from the port the application is listening on. Target Port is the port the application is listening on. It is the port to be accessed outside.
+
+NodePort exposes the service on each node's IP via the defined static port. No matter which node within the cluster is accessed, the service will be reachable based on the port number defined.
+
+Service can also use External IP Address to make it available to the outside.
+
+When running in the cloud, it's possible to configure and assign a public IP address issued via cloud provider. This will be issued via a Load Balancer such as ELB. This allows additional public IP addressed to be allocated to a Kubernetes cluster without interacting directly with the cloud provider.
+
