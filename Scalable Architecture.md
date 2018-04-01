@@ -62,8 +62,11 @@ it's a bad idea to divide threads into producers and consumers, it's better idea
 
 never use unbounded queues in producer-consumer scenario. a bounded queue behaves the same as an unbounded one while everything goes as supposed, and no severe performance degradation or OOM.
 
-#### Multi-version concurrency control
+#### Multi-version Concurrency Control
+eliminate starvation. it allows several versions of an object to exist at the same time. readers acquire the current version and work with it as much as they want. writer can create and publish a new version of an object, which becomes the current. readers will still work with previous version and can't block/starve writers. when readers end with an old version of an object, it goes away.
 
+#### Optimistic Concurrency Control
+makes logically read-only access physically read-only and eliminate writer starvation caused by reader. a reader starts reading an object without any synchronization, and when it finishes it verifies that the object was not changed under its feet. if object was not changed then it has obtained some consistent view of the object, otherwise retry. the technique gives very good result with respect to scalability in many cases. however, a reader must be prepared to read inconsistent data, which can cause crash, infinite loop.
 
-Reference:
+#### Reference
 (Reference)[http://www.1024cores.net/home/scalable-architecture/introduction]
