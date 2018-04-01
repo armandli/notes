@@ -32,5 +32,38 @@ the advantage of work stealing is its asynchronous nature where the thief thread
 
 work-balancing is more cumbersome to implement compared to work-distribution. it can be useful for systems with badly structured work DAGs and with unpredictable load. e.g. Erlang scheduler employs work-balancing.
 
+#### Multilane : a concurrent blocking multiset
+goal is to improve the scalability of a producer-consumer system by means of partitioning. Wrap any producer-consumer queue in order to get a queue with the same properties but better scalability.
+
+multilane is composed of multiple queues all have the same property, a *input ticket demux* and a *output ticket mux*. there is no restriction of underlying queue, and it can be bounded or unbounded. the input demultiplexer and the output multiplexer are no more than atomic variables, and tickets are obtained with `atomic_fetch_add(1)`
+
+```
+void multilane_enqueue(multilane_t* m, void* data)
+{
+    unsigned ticket = atomic_fetch_add(&m->enqueue_cursor, 1, memory_order_relaxed);
+    underlying_queue_t* queue = &m->queues[ticket % m->count];
+    underlying_enqueue(queue, data);
+}
+
+void* multilane_dequeue(multilane_t* m)
+{
+    unsigned ticket = atomic_fetch_add(&m->dequeue_cursor, 1, memory_order_relaxed);
+    underlying_queue_t* queue = &m->queues[ticket % m->count];
+    return underlying_dequeue(queue);
+} 
+```
+Intel TBB concurrent queue uses the same trick.
+
+It increases performance using partitioning. but there is no way to make a centralized heavy contended data structure scalable. Instead, this should be solved in the architecture level. e.g. per-thread pools, where a thread pushes and pops resources to its own pool, only to query randomly other pool if its own pool is empty. alternative design is to use per-thread pool along with centralized one which is used solely for resource surplus. that is if per-thread pool reaches a threshold, some resource are offloaded into the centralized pool, and thread is out of resources it queries the centralized pool.
+
+in producer-consumer scenario, we can introduce notion of persistent binding between producers and consumers. each producer has a SPMC queue (single producer, multiple consumer queue). each consumer has one or several associated producers, and checks their queue first. if they are empty then fall back to random checking of other queues.
+
+it's a bad idea to divide threads into producers and consumers, it's better idea to have just worker threads and let them decide to do whatever most important. so a thread can switch to producer and push jobs to its own queue, then switch to consumer and consume message on the same queue.
+
+never use unbounded queues in producer-consumer scenario. a bounded queue behaves the same as an unbounded one while everything goes as supposed, and no severe performance degradation or OOM.
+
+#### Multi-version concurrency control
+
+
 Reference:
 (Reference)[http://www.1024cores.net/home/scalable-architecture/introduction]
