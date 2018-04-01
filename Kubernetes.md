@@ -19,6 +19,11 @@ kubectl expose deployment <name> --external-ip="<ip>" --port=<internal_port_no> 
 # scale containers
 kubectl scale --replicas=<new replica number> deployment <pod_name> #increase/decrease the number of replicas of a container
 
+# using yaml configurations for deployment
+kubectl create -f <deployment yaml file> #can be a deployment or service
+kubectl apply -f <deployment yaml file> #updates deployment based on changes in the yaml file
+
+
 # obtaining kubernetes information
 kubectl cluster-info #general info regarding kubernetes cluster
 kubectl get nodes    #show all nodes
@@ -75,3 +80,45 @@ to deploy the dashboard yaml
 ```
 kubectl apply -f dashboard.yaml
 ```
+
+#### deployment.yaml
+the deployment object defines the container spec required, along with the name and labels used by other parts of kubernetes to discover and connect to the application. e.g. deployment yaml
+
+```
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: webapp1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: webapp1
+    spec:
+      containers:
+      - name: webapp1
+        image: katacoda/docker-http-server:latest
+        ports:
+        - containerPort: 80
+```
+
+#### service.yaml
+controls the networking configuration. the service selects all applications with the label <name>. As multiple replicas or instances are deployed. it automatically load balance based on the common label. the service makes the application available via NodePort. e.g.
+  
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp1-svc
+  labels:
+    app: webapp1
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    nodePort: 30080
+  selector:
+    app: webapp1
+```
+
