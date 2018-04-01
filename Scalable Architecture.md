@@ -65,6 +65,28 @@ never use unbounded queues in producer-consumer scenario. a bounded queue behave
 #### Multi-version Concurrency Control
 eliminate starvation. it allows several versions of an object to exist at the same time. readers acquire the current version and work with it as much as they want. writer can create and publish a new version of an object, which becomes the current. readers will still work with previous version and can't block/starve writers. when readers end with an old version of an object, it goes away.
 
+##### Differential Reference Counting
+reference counting with strong thread-safety. *strongly thread-safe object* permit concurrent read and write access, while *basically thread-safe object* permit either concurrent read accesses or exclusive write access.
+
+structure of differential reference counter:
+```
+{counter + ptr} -> {strong_counter | basic_counter | data}
+```
+
+vs plain old reference counting:
+
+```
+{ptr} -> {counter | data}
+```
+
+an object can be deleted when both inner counters (strong_counter and basic_counter) are equal to 0. Outer counter is used as transient cache. it collects all +1 while inner counters collects -1, thus the same differential. when a pointer is updated with a new value, outer counter value is transferred to the inner counter.
+
+differential reference counting features 2 types of pointers: a strong pointer is one that supports arbitrary concurent access, that is one thread acquires/copies a pointer, and another thread updates the pointer. a basic pointer is one that is thread-safe as int, supports either concurrent acquire/copy exclusive update.
+
+the inner strong counter is the number of strong pointers to the object. the inner basic counter is the number of usual references to the object.
+
+(implementation reference)[http://www.1024cores.net/home/lock-free-algorithms/object-life-time-management/differential-reference-counting/implementation]
+
 #### Optimistic Concurrency Control
 makes logically read-only access physically read-only and eliminate writer starvation caused by reader. a reader starts reading an object without any synchronization, and when it finishes it verifies that the object was not changed under its feet. if object was not changed then it has obtained some consistent view of the object, otherwise retry. the technique gives very good result with respect to scalability in many cases. however, a reader must be prepared to read inconsistent data, which can cause crash, infinite loop.
 
