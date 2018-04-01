@@ -90,5 +90,26 @@ the inner strong counter is the number of strong pointers to the object. the inn
 #### Optimistic Concurrency Control
 makes logically read-only access physically read-only and eliminate writer starvation caused by reader. a reader starts reading an object without any synchronization, and when it finishes it verifies that the object was not changed under its feet. if object was not changed then it has obtained some consistent view of the object, otherwise retry. the technique gives very good result with respect to scalability in many cases. however, a reader must be prepared to read inconsistent data, which can cause crash, infinite loop.
 
+### Producer-Consumer Queue
+properties:
+1. allowed number of producer and consumer threads: MPMC, SPMC, MPSC, SPSC
+2. underlying data structure: array based, linked list, hybrid
+3. intrusiveness for linked-list based queues
+4. maximum size for linked-list based queue
+5. overflow behavior: fails on overflow or overwrites the oldest item on overflow
+6. requirement on garbage collection
+7. support for priorities
+8. ordering guarantees: casual FIFO/LIFO, per-producer FIFO/LIFO, best-effort FIFO/LIFO or no ordering guarantee
+9. forward progress guarantee for producers: waitfree producer, lockfree producer, blocking producer
+10. forward progress guarantee on consumers: waitfree consumer, lockfree consumer, blocking consumer
+11. expected usage: queue usually contains very few or zero messages or queue contains substantial amount of message
+12. behavior on failure: when a queue is empty/full consumers/producers get blocked, or instantly get false
+
+##### Queue Catalog
+- bounded MPMC queue (reference)[http://www.1024cores.net/home/lock-free-algorithms/queues/bounded-mpmc-queue]
+- intrusive MPSC node-based queue (reference)[http://www.1024cores.net/home/lock-free-algorithms/queues/intrusive-mpsc-node-based-queue]
+- non-intrusive MPSC node-based queue (reference)[http://www.1024cores.net/home/lock-free-algorithms/queues/non-intrusive-mpsc-node-based-queue]
+- unbounded SPSC queue (reference)[http://www.1024cores.net/home/lock-free-algorithms/queues/unbounded-spsc-queue]
+
 #### Reference
 (Reference)[http://www.1024cores.net/home/scalable-architecture/introduction]
