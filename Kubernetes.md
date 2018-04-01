@@ -7,12 +7,29 @@ commands
 ```
 minikube version #obtain kubernetes version
 minikube start   #start kubernetes cluster
+
+# creating a deployment
+kubectl run <name> --image=<image-path> --port=<no> --replicas=<number copy> --hostport=<internal_port_no> # start off a pod with name <name> using image <image-path> on port <no>, exposing internal port no <internal_port_no>
+# using --hostport exposes the pod via Docker Port Mapping, as a result kubectl get svc will not see it
+
+# making service available externally
+kubectl expose deployment <name> --port=<port_no> --type=NodePort #container can be exposed by different means, one way is a NodePort, otherwise a container is not exposed externally
+kubectl expose deployment <name> --external-ip="<ip>" --port=<internal_port_no> --target-port=<external_port_no> # expose the container port <external_port_no> on the host <internal_port_no> binding to the <ip> of the host
+
+# scale containers
+kubectl scale --replicas=<new replica number> deployment <pod_name> #increase/decrease the number of replicas of a container
+
+# obtaining kubernetes information
 kubectl cluster-info #general info regarding kubernetes cluster
 kubectl get nodes    #show all nodes
-kubectl run <name> --image=<image-path> --port=<no> --replicas=<number copy># start off a pod with name <name> using image <image-path> on port <no>
+kubectl get deployments # view status of all deployments
 kubectl get pods     #show all pods and pod status
-kubectl expose deployment first-deployment --port=80 --type=NodePort #container can be exposed by different means, one way is a NodePort, otherwise a container is not exposed externally
 kubectl get svc <podname> -o go-template='{{range.spec.ports}}{{if .nodePort}}{{.nodePort}}{{end}}{{end}}' #obtain the NodePort of a pod with name podname
+kubectl describe deployment <name> # description include how many replicas, labels specified, events associated with, including errors
+kubectl describe svc <pod name> #view the endpoints and the associated pods (ip:port combinations of all replicas)
+
+# obtain docker information
+docker ps # show exposed ports through docker, this is important when kubernetes uses docker to do port mapping
 ```
 
 first step in creating a cluster is launching the master node, who is running the control plane components, etcd, API server.
