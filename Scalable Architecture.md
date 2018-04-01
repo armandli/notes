@@ -16,7 +16,21 @@ don't extensively use mutexes and other explicit or implicit forms of mutual exc
 
 eliminate mutable shared state when possible.
 
+#### Task Scheduling Strategies
+1. **work-stealing**. reactive asynchronous strategy. when a thread is out of work, it randomly chooses a victim thread and asynchronously tries to steal work from it
+2. **work-requesting**. reactive synchronous strategy. when a thread is out of work, it randomly chooses a victim thraed and send synchronous request to it, victim receives the request, send work back
+3. **work-distribution**. proactive synchronous strategy. during submission of a new work, it's divided and proactively distributed to some threads (idle or lightly loaded)
+4. **work-balancing**. practive asynchronous strategy. dedicated thread periodically collect information about load of all worker thread, calculate optimal distribution of work, re-distribute work among them
 
+it is possible to use multiple or all of the above strategies for scheduling. reactive strategies have limited local information and makes sub-optimal decisions. proactive strategies have information regarding information state, makes one-shot optimal scheduling decisions but unable to cope with inevitable dynamic load balancing.
+
+scheduler must employ at least one reactive strategies to cope with continuous and inevitable dynamic load imbalance, and optionally include one or both proactive strategy in order to cut down stealing/requesting cost.
+
+the general recipe for scheduler is `SCHEDULER = (STEALING ^ REQUSTING)[+DISTRIBUTION][+BALANCING]`
+
+the advantage of work stealing is its asynchronous nature where the thief thread is able to work while victim thread is busy. but it also have 2 problem. One is it requires the worker work queue to synchronize due to potential asynchronous operation from another thread regardless of how often it happens. Two is the join phase of parallel algorithm. Traditional handling of task completion involve decrement of pending child counter in parent task. Due to asynchronous nature of work-stealing, decrement has to be synchronized with other potential concurrent decrement operation.
+
+work-balancing is more cumbersome to implement compared to work-distribution. it can be useful for systems with badly structured work DAGs and with unpredictable load. e.g. Erlang scheduler employs work-balancing.
 
 Reference:
 (Reference)[http://www.1024cores.net/home/scalable-architecture/introduction]
