@@ -94,3 +94,35 @@ for_each
 a way to avoid having to write a loop. this is best used when you don't have to apply an operation to the entire collection. when it applies to the entire collection, it would be better to use the for each element looping syntax.
 
 adding a + in front of a lambda expression turns the lambda expression from a lambda literal into a function pointer type
+
+#### copying
+```
+copy
+copy_if
+copy_n  #copy from one container to another for n elements, if n is bigger than destination container or input container, this is undefined
+copy_backward
+```
+
+if it is copying the entire collection, use copy constructor. 
+
+copy within a collection is safe if the begin and end ranges do not overlap. if it does, it is safe to use copy_backward if the begining of the destination iterator is before the end of the input iterator.
+
+copy_backward copies starting from the last element needed to be copied. it is often used only for the copying within the same container, shifting the elements to the right a little. if it is to shift elements to the left, only need to use the copy() function.
+
+copy_backward is awkward as the destination iterator is taken as the end() iterator, and it is accessed in reverse order to begin.
+
+it is undefined behavior if destination does not have enough size to hold onto the entire copied collection
+
+#### move
+```
+move          # move a segment of a container element to another container, leaving empty shells in the original, use the move constructor
+move_backward # move but backward within the container. it is odd that standard included this algorithm but not move_if and move_n
+```
+
+#### remove
+```
+remove    # move elements matching critiera to the end of the container, giving a iterator to the begining of the removed elements
+remove_if
+```
+
+`container.erase(remove(...))` is a common idiom. it means to erase some elements in container that fits critiera. erase and remove are separate in c++ for optimziation reasons.
