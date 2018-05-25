@@ -126,3 +126,37 @@ remove_if
 ```
 
 `container.erase(remove(...))` is a common idiom. it means to erase some elements in container that fits critiera. erase and remove are separate in c++ for optimziation reasons.
+
+#### create and fill collections
+```
+fill
+fill_n
+iota       # generate values by adding 1 at a time
+generate   # takes a lambda, can generate anything
+generate_n
+```
+
+these are best to use when construction is only needed for a certain segment of the container, but not all.
+
+#### replacing values
+```
+replace
+replace_if
+```
+
+#### transform
+```
+transform #can take consecutive elements in an container and do transformations too
+```
+
+#### eliminate duplication
+there are multiple ways to eliminate duplicate within a container
+* sort() then unique(), where unique() only look at consecutive values, returns a iterator pointing to list of elements to be removed, container is dirty after
+* sort() then unique_copy(), instead of dirty the container, unique_copy copies the unique elements to a destination container
+
+#### reverse and swap
+```
+reverse      #reverse a container, the container is then modified
+iter_swap    #swap the values pointed to by 2 iterators
+reverse_copy #do not modify the container
+```
