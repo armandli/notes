@@ -160,3 +160,29 @@ reverse      #reverse a container, the container is then modified
 iter_swap    #swap the values pointed to by 2 iterators
 reverse_copy #do not modify the container
 ```
+
+#### iterators
+header ``<iterator>``
+
+```
+back_inserter
+front_inserter
+```
+
+inserters depends on whether a container has push_back or push_front methods; will fail if container does not provide those methods.
+
+inserters only work with algorithms where it only take the begin of a destination output container, not the end of the destination output container. this means only functions such as `fill_n`, `generate_n`, `reverse_copy` etc.
+
+#### iterator arithmetic
+```
+begin()
+end()
+cbegin()
+cend()
+rbegin()
+rend()
+crbegin()
+crend()
+```
+
+
