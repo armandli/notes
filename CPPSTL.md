@@ -185,4 +185,20 @@ crbegin()
 crend()
 ```
 
+#### Unexpected Operations
+```
+swap() # does not need to be applied to containers
+iter_swap() # swap the element between two iterator
+swap_ranges() # can apply to single collection or two collection
+rotate()
+partition()
+next_permutation()
+```
+
+rotate(first, middle, last) takes range [first, last) and rotate it so that the middle element becomes the first in the range. this is useful for moving sections in container up or down inside the same container.
+
+partition moves all items of the same condition into the same segment in the same container, leaving all elements not having the condition into a separate segment. partition is like gather algorithm
+
+rotate and partition together can achieve custom results such as move ranges up and down a collection, remove/move items up and down, partial sort, group by, close the gap etc.
+
 
