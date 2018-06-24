@@ -201,4 +201,21 @@ partition moves all items of the same condition into the same segment in the sam
 
 rotate and partition together can achieve custom results such as move ranges up and down a collection, remove/move items up and down, partial sort, group by, close the gap etc.
 
+#### Convensions in STL
+* order of parameters
+* integer parameters
+* prefix, suffix are mostly consistent
 
+iterator parameters follow the following rule:
+* 2 iterators are often begin and end
+* iterator with a number indicating number of steps
+* 3 iterators are often begin and end of input and begin of output
+* 4 iterators are begin end end of input and begin and end of output
+
+exceptions are rotate, rotate_copy, partial_sort, nth_element, inplace_merge
+
+functions that take integer parameters would end with "_n"
+
+predicate functions are often the last parameter, except for replace_if and replace_copy_if
+
+functions end with "_if" takes a predicate, function start with "is_" returns a bool and takes a predicate
