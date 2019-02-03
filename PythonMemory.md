@@ -55,4 +55,45 @@ to analyze memory usage of Python built-in types, `PyObject_Malloc` uses malloc,
 
 to analyze memory usage, use valgrind would simulate the program, which changes the program behavior. gdb-heap is a gdb extension, gdb7 can use python as script that introspect data in program being attached to. 
 
+### Avoid String Copying in Python
+example: reading a file, and referring to a segment of the file when reading would cause the file to be copy out the referred segment. to avoid the copy out when reading, use objects that implements the buffer protocol. objects implement this protocol have a memoryview() function that you can use when constructing the object. this will give a memoryview object on the original object as output. e.g.
+
+```
+s = b'abcdefg'
+view = memoryview(s)
+slice = view[1:5] #does not cause a copy on read
+```
+
+example usage: sending out data through socket. when sending out data through socket, the data being sent out are copied before sending out. use memoryview to avoid
+the copy.
+
+```
+import socket
+s = socket.socket(…)
+s.connect(…)
+# Build a bytes object with more than 100 millions times the letter `a`
+data = b"a" * (1024 * 100000)
+mv = memoryview(data)
+while mv:
+    sent = s.send(mv)
+    # Build a new memoryview object pointing to the data which remains to be sent
+    mv = mv[sent:]
+```
+
+both objects in the array module and functions in the struct module handle buffer protocol
+
+### use preallocated buffer for read
+when reading a file, you can preallocate a buffer to read data into, controlling the maximum amount of memory usage. example
+
+```
+ba = bytearray(8)
+with open('/dev/urandom', 'rb') as source:
+  source.readinto(ba)
+```
+
+we can use memoryview here to use part of the buffer to be read into as well.
+
+### memory_profiler module
+use memory_profiler module to monitor the memory usage of each line of code in python
+
 
