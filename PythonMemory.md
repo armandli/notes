@@ -96,4 +96,22 @@ we can use memoryview here to use part of the buffer to be read into as well.
 ### memory_profiler module
 use memory_profiler module to monitor the memory usage of each line of code in python
 
+### Other Profiling tools
+* PyCallGraph - create graph visualizations that represent calling relationships
+* cProfile - describe how often and how long various parts of python code are executed
+* gProf2dot - visualized profiler output into a dot graph
 
+### use timeit module
+use timeit module to time the time it took to execute some operation
+
+#### list comprehension vs for loop
+list comprehension tend to be faster than for loop, but uses more memory
+
+#### range vs xrange
+range generate a list, and thus uses a lot of memory if list is large, xrange generate a generator object, saving memory, but takes longer to compute
+
+#### set vs explicit duplicate removal
+using add to set is always faster than remove duplicate manually from list
+
+#### string concat vs join
+join is always faster than string concat
