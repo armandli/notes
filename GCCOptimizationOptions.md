@@ -132,3 +132,11 @@
 
 `--fast-math` disable various aspect of floating point strict correctness, from folding to removal of exception handling
 `--reciprocal-math` enable optimization substitutes floating point division by SSA_NAME with multiplication by the reciprocal.
+
+#### GCC option to print optimization information
+`-fopt-info-all-vec` generate all optimization information and which part failed to optimize
+`-fsave-optimization-record` saves optimization information in json form in GCC9
+
+additional resources for reading optimization information:
+github.com/drepper/gcc-passes is a gcc plugin that discover optimization passes used during compilation
+github.com/drepper/optmark is a reader of json file generated from -fsave-optimization-record to further refine the information for human reading
