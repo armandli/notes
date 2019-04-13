@@ -140,3 +140,99 @@
 additional resources for reading optimization information:
 github.com/drepper/gcc-passes is a gcc plugin that discover optimization passes used during compilation
 github.com/drepper/optmark is a reader of json file generated from -fsave-optimization-record to further refine the information for human reading
+
+#### jump threading optimization
+goal is to reduce the number of jumps in code, resulting in improved performance due to eliminating conditionals, which allows other optimizations. simplification
+of control flow also reduce false positive rates of option `-Wuninitialized`, which also coorelate with missed optimization opportunities.
+
+example:
+```
+if (a > 5)
+  goto j;
+doStuff();
+doStuff();
+j:
+  goto somewhere;
+```
+
+is optimized into:
+```
+if (a > 5)
+  goto somewhere;
+doStuff();
+doStuff();
+j:
+  goto somewhere;
+```
+
+also deals with overlapping conditionals. example
+
+```
+void foo(int a, int b, int c){
+  if (a && b)
+    foo();
+  if (b || c)
+    bar();
+}
+```
+
+optimized into
+
+```
+void foo(int a, int b, int c){
+  if (a && b){
+    foo();
+    goto skip;
+  }
+  if (b || c){
+skip:
+    bar();
+  }
+}
+```
+
+jump threading can duplicate block to avoid jumping. example
+
+```
+void foo(int a, int b, int c){
+  if (a && b)
+    foo();
+  tweak();
+  if (b || c)
+    bar();
+}
+```
+
+transformed into
+
+```
+void foo(int a, int b, int c){
+  if (a && b){
+    foo();
+    tweak();
+    goto skip;
+  }
+  tweak();
+  if (b || c){
+skip:
+    bar();
+  }
+}
+```
+
+jump threading eliminate conditional jumps, which may be at the expense of duplicating code.
+
+GCC limite jump threading inling capability by option `--param max-fsm-paths-insns=500` which controls the maximum number of instructions to duplicate or `--param max-fsm-thread-length` which controls the maximum basic block length instead of instruction length.
+
+jump threading optimization is enabled at O2, and is intertwined with other optimization such as value range propagation (VRP) so it cannot be independently turned
+off. `-fno-thread-jumps` only turns off jump threading in low level RTL optimizer.
+
+to see jump threading in action, use option `-fdump-tree-all-details -O2` and look at `*.C*{ethread, thread1, thread2, thread3 thread4}` as well as VRP dumps
+`*.c*{vrp1, vrp2}` which contains lines like Threaded jump 3 --> 4 to 7
+
+##### warning for data structure padding
+use option `-Wpadded` to warn when padding is used in data structures
+
+##### warnings for bad use of std::move
+`-Wredundant-move` warn when move is redundant
+`-Wpessimizing-move` warn when move is a bad idea, such as breaking NRVO
