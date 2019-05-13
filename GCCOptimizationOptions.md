@@ -230,9 +230,25 @@ off. `-fno-thread-jumps` only turns off jump threading in low level RTL optimize
 to see jump threading in action, use option `-fdump-tree-all-details -O2` and look at `*.C*{ethread, thread1, thread2, thread3 thread4}` as well as VRP dumps
 `*.c*{vrp1, vrp2}` which contains lines like Threaded jump 3 --> 4 to 7
 
+#### Code Layout Optimization
+in general, having hot code being placed one after another in cache will be faster code than having non-hot code mixed into hot code blocks.
+conitional block can use builtin function `__builtin_expect(cond, 0)` for condition that's unlikely to happen or `__builtin_expect(cond, 1)` for condition that's likely to happen for code layout optimization.
+
+having hot code aligned in cache also helps. llvm supports code alignment compiler options:
+`-align-all-blocks=<uint>` force the alignment of all blocks in the function
+`-align-all-functions=<uint>` force the alignment of all functions
+`align-all-nonfallthru-blocks=<uint>` force the alignment of all blocks that have no fall-through, the most safe option
+
+to keep function that is non-hot not being inlined into hot code also helps, use gcc attribute `__attribute__((noinline))`
+
+#### Profile Guided Optimization (PGO)
+option allowing for profile driven optimization in code
+
 ##### warning for data structure padding
 use option `-Wpadded` to warn when padding is used in data structures
 
 ##### warnings for bad use of std::move
 `-Wredundant-move` warn when move is redundant
 `-Wpessimizing-move` warn when move is a bad idea, such as breaking NRVO
+
+
