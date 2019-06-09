@@ -20,3 +20,7 @@ If variable set and not empty, return value, else null string 	${variable:+value
 #### Extraction
 Extract length characters from variable starting at position 	${variable:position:length}
 String length of variable 	${#variable}
+#### Remove Duplicate lines perserving ordering in a file
+`awk '!visited[$0]++' your_file > deduplicated_file`
+#### The Tar Pipe
+(cd src && tar -cf - .) | (cd dest && tar -xpf -)
