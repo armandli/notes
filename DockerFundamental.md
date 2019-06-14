@@ -544,5 +544,28 @@ there can only be 1 `HEALTHCHECK` instruction in a docker image. the command use
 SHELL ["executable", "parameters"]
 ```
 
+##### Build secrets into docker container
+1. When you run a container, it gets its own network namespace in the kernel, with its own network interfaces and corresponding IP addresses.
+2. Containers can choose to join the network of an existing container.
+3. docker build has a --network argument that lets RUN build steps join a particular network—including that of an existing container.
+
+example:
+```
+$ cat secret.txt
+gadzooks123
+$ docker run --name=secrets-server --rm --volume $PWD:/files \
+      busybox httpd -f -p 8000 -h /files
+```
+
+```
+FROM busybox
+RUN echo "The secret is: " && \
+    wget -O - -q http://localhost:8000/secret.txt
+```
+
+```
+$ docker build --network=container:secrets-server .
+```
+
 ### Reference
 [Dockerfile Documentation](https://docs.docker.com/engine/reference/builder/#usage)
