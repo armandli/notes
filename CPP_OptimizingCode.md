@@ -118,3 +118,6 @@ void foo(int *p, int *q, int *r){
     p[i] = q[i] + r[i];
 }
 ```
+
+#### Micro Optimization in C
+when declaring prototype, use f(void) instead of f() to save 2 byte of instruction, or use `-Wstrict-prototypes`

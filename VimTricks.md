@@ -114,4 +114,7 @@ conversely, run ex on lines that does not match the regex
 example: :windo $ will scroll all windows to the bottom
 there is also :bufdo, :cdo, :tabdo
 
-
+#### Using GDB to debug in Vim
+:packadd termdebug
+:TermDebug program
+:help terminal-debug
