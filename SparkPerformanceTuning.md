@@ -164,3 +164,5 @@ doing the above configuration allows files to be written progressively instead o
 
 spark supports predicate pushdown with parquet (but may not always be effective), and parquet allows to limit the amount of data read from S3
 
+#### Reference
+https://travisdowns.github.io/blog/2019/06/11/speed-limits.html
