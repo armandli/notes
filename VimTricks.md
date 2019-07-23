@@ -116,5 +116,5 @@ there is also :bufdo, :cdo, :tabdo
 
 #### Using GDB to debug in Vim
 :packadd termdebug
-:TermDebug program
+:Termdebug program
 :help terminal-debug
