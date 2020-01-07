@@ -22,3 +22,4 @@ to compute how a real number is represented, e.g. 3.14:
 the value for 3.14 is therefore approximated to be 3.1400001049041748046875. the corresponding formula: (-1)^0 * 1.57 * 2^(128 - 127)
 
 
+floating point magic: 9999999999999999.0 - 9999999999999998.0 = 2.0
