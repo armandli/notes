@@ -121,3 +121,9 @@ void foo(int *p, int *q, int *r){
 
 #### Micro Optimization in C
 when declaring prototype, use f(void) instead of f() to save 2 byte of instruction, or use `-Wstrict-prototypes`
+
+#### builtin instructions for bit counting
+`__builtin_clz(x)` the number of zeros at the begining of the number
+`__builtin_ctz(x)` the number of zeros at the end of the number
+`__builtin_popcount(x)` the number of ones in the number
+`__builtin_parity(x)` the parity (even or odd) of the number of ones
