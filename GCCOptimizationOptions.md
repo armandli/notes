@@ -251,4 +251,8 @@ use option `-Wpadded` to warn when padding is used in data structures
 `-Wredundant-move` warn when move is redundant
 `-Wpessimizing-move` warn when move is a bad idea, such as breaking NRVO
 
+##### attribute flatten
+the attribute `__attribute__((flatten))` in both GCC and Clang. Function with this attribute will inline all its callees
 
+##### Static Analysis Options
+gcc10 has `-fanalyzer` option to turn on static analysis in GCC. this option can detect things such as double free.

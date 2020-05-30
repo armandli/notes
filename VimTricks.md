@@ -314,3 +314,22 @@ nnoremap <leader>y :call Osc52Yank()<CR>
 #### screen multiplexing with tmux
 multiplex project into different window panes, instead of a single vim session, we can have multiple vim sessions within 1 window, in this case the screen window is
 different from the vim window
+
+#### sort lines
+:sort
+
+we can also sort on patterns within each line. e.g.
+
+:sort /-\w*/ r
+:sort /(.*)/ r
+
+#### matching repeated words
+`\<\(\w\+\) \1\>`
+
+we can use it in substitution `%s/\<\(\w\+\) \1\>/\1/g`
+
+it is possible to use lookahead syntax in vim `@=` to find words that appear within a given distance of another. example
+
+`\<\(\w\+\)\>\(.\{0,50}\<\1\>\)\@=`
+
+

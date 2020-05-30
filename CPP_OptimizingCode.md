@@ -127,3 +127,6 @@ when declaring prototype, use f(void) instead of f() to save 2 byte of instructi
 `__builtin_ctz(x)` the number of zeros at the end of the number
 `__builtin_popcount(x)` the number of ones in the number
 `__builtin_parity(x)` the parity (even or odd) of the number of ones
+
+#### attributes
+`__attribute__((flatten))` causes all callees of the function to be inlined
