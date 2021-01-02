@@ -74,6 +74,12 @@ mA sets a mark at the curent cursor to register A, lower case register is per bu
 ### moving between jumplist
 ctrl-I and ctrl-O
 
+### move between change list
+g; and g,
+
+### move between methods
+[m and ]m
+
 ### Incremen, decrement
 ctrl-A and ctrl-X
 
@@ -98,7 +104,7 @@ d 3
 ### 3 visual modes:
 v is character wise visual mode, V is line wise visual mode, ctrl-V is block wise visual mode
 
-example: d<c-V>2j would convert the motion to blockwise and delete the coloum 
+example: d<c-V>2j would convert the motion to blockwise and delete the coloum
 
 ### match nth line below or above the match
 /regex/{n}
@@ -331,5 +337,3 @@ we can use it in substitution `%s/\<\(\w\+\) \1\>/\1/g`
 it is possible to use lookahead syntax in vim `@=` to find words that appear within a given distance of another. example
 
 `\<\(\w\+\)\>\(.\{0,50}\<\1\>\)\@=`
-
-
